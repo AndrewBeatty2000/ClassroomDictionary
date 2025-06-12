@@ -38,6 +38,13 @@
         button:hover {
             background-color: #005a9e;
         }
+        .delete-btn {
+            background-color: #d9534f;
+            margin-left: 1em;
+        }
+        .delete-btn:hover {
+            background-color: #c9302c;
+        }
         #definition {
             margin-top: 1em;
             padding: 1em;
@@ -137,6 +144,12 @@
                 });
         }
 
+        function deleteWord(word) {
+            wordList = wordList.filter(entry => entry.word !== word);
+            localStorage.setItem("wordList", JSON.stringify(wordList));
+            renderWordWall();
+        }
+
         function renderWordWall() {
             const sortedList = [...wordList];
             if (currentTab === "alpha") {
@@ -150,7 +163,8 @@
             sortedList.forEach(entry => {
                 const div = document.createElement("div");
                 div.className = "word-entry";
-                div.innerHTML = `<strong>${entry.word}</strong>: <em>${entry.definition}</em>`;
+                div.innerHTML = `<strong>${entry.word}</strong>: <em>${entry.definition}</em>
+                    <button class="delete-btn" onclick="deleteWord('${entry.word}')">Delete</button>`;
                 wordListDiv.appendChild(div);
             });
         }

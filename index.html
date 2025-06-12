@@ -33,18 +33,30 @@
             background: #fff;
             border: 1px solid #ccc;
         }
-        #word-wall {
+        #tabs {
+            display: flex;
             margin-top: 2em;
-            padding: 1em;
+            border-bottom: 2px solid #ccc;
+        }
+        .tab {
+            padding: 0.5em 1em;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-bottom: none;
             background: #e0f7fa;
+            margin-right: 0.5em;
+        }
+        .tab.active {
+            background: #ffffff;
+            font-weight: bold;
+        }
+        #word-wall {
+            padding: 1em;
+            background: #ffffff;
             border: 1px solid #b2ebf2;
         }
         .word-entry {
             margin-bottom: 0.5em;
-        }
-        select {
-            margin-top: 1em;
-            font-size: 1em;
         }
     </style>
 </head>
@@ -54,19 +66,20 @@
         <input type="text" id="wordInput" placeholder="Enter a word">
         <button onclick="defineWord()">Define</button>
         <div id="definition"></div>
+
+        <div id="tabs">
+            <div class="tab active" onclick="switchTab('date')">Date Added</div>
+            <div class="tab" onclick="switchTab('alpha')">Alphabetical</div>
+        </div>
         <div id="word-wall">
             <h3>Word Wall</h3>
-            <label for="sortSelect">Sort by: </label>
-            <select id="sortSelect" onchange="renderWordWall()">
-                <option value="date">Date Added</option>
-                <option value="alpha">Alphabetical</option>
-            </select>
             <div id="wordList"></div>
         </div>
     </div>
 
     <script>
-        const wordList = [];
+        let wordList = JSON.parse(localStorage.getItem("wordList") || "[]");
+        let currentTab = "date";
 
         function defineWord() {
             const word = document.getElementById("wordInput").value.trim();
@@ -86,7 +99,8 @@
                     `;
 
                     if (!wordList.some(w => w.word === entry.word)) {
-                        wordList.push({ word: entry.word, definition: meaning, date: new Date() });
+                        wordList.push({ word: entry.word, definition: meaning, date: new Date().toISOString() });
+                        localStorage.setItem("wordList", JSON.stringify(wordList));
                         renderWordWall();
                     }
                 })
@@ -96,13 +110,11 @@
         }
 
         function renderWordWall() {
-            const sortBy = document.getElementById("sortSelect").value;
             const sortedList = [...wordList];
-
-            if (sortBy === "alpha") {
+            if (currentTab === "alpha") {
                 sortedList.sort((a, b) => a.word.localeCompare(b.word));
             } else {
-                sortedList.sort((a, b) => a.date - b.date);
+                sortedList.sort((a, b) => new Date(a.date) - new Date(b.date));
             }
 
             const wordListDiv = document.getElementById("wordList");
@@ -114,6 +126,15 @@
                 wordListDiv.appendChild(div);
             });
         }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelector(`.tab:nth-child(${tab === "date" ? 1 : 2})`).classList.add("active");
+            renderWordWall();
+        }
+
+        renderWordWall();
     </script>
 </body>
 </html>

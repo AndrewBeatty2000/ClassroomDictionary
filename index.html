@@ -14,11 +14,11 @@
             text-align: center;
         }
         #dictionary {
-            max-width: 600px;
+            max-width: 700px;
             margin: auto;
         }
         input[type="text"] {
-            width: 70%;
+            width: 60%;
             padding: 0.5em;
             font-size: 1em;
         }
@@ -42,6 +42,10 @@
         .word-entry {
             margin-bottom: 0.5em;
         }
+        select {
+            margin-top: 1em;
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
@@ -52,6 +56,11 @@
         <div id="definition"></div>
         <div id="word-wall">
             <h3>Word Wall</h3>
+            <label for="sortSelect">Sort by: </label>
+            <select id="sortSelect" onchange="renderWordWall()">
+                <option value="date">Date Added</option>
+                <option value="alpha">Alphabetical</option>
+            </select>
             <div id="wordList"></div>
         </div>
     </div>
@@ -76,17 +85,34 @@
                         ${audio ? `<button onclick="new Audio('${audio}').play()">🔊 Pronounce</button>` : ''}
                     `;
 
-                    if (!wordList.includes(entry.word)) {
-                        wordList.push(entry.word);
-                        const wordDiv = document.createElement("div");
-                        wordDiv.className = "word-entry";
-                        wordDiv.textContent = entry.word;
-                        document.getElementById("wordList").appendChild(wordDiv);
+                    if (!wordList.some(w => w.word === entry.word)) {
+                        wordList.push({ word: entry.word, definition: meaning, date: new Date() });
+                        renderWordWall();
                     }
                 })
                 .catch(() => {
                     document.getElementById("definition").innerHTML = "Definition not found.";
                 });
+        }
+
+        function renderWordWall() {
+            const sortBy = document.getElementById("sortSelect").value;
+            const sortedList = [...wordList];
+
+            if (sortBy === "alpha") {
+                sortedList.sort((a, b) => a.word.localeCompare(b.word));
+            } else {
+                sortedList.sort((a, b) => a.date - b.date);
+            }
+
+            const wordListDiv = document.getElementById("wordList");
+            wordListDiv.innerHTML = "";
+            sortedList.forEach(entry => {
+                const div = document.createElement("div");
+                div.className = "word-entry";
+                div.innerHTML = `<strong>${entry.word}</strong>: <em>${entry.definition}</em>`;
+                wordListDiv.appendChild(div);
+            });
         }
     </script>
 </body>

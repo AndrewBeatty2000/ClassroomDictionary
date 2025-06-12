@@ -38,13 +38,6 @@
         button:hover {
             background-color: #005a9e;
         }
-        .delete-btn {
-            background-color: #d9534f;
-            margin-left: 1em;
-        }
-        .delete-btn:hover {
-            background-color: #c9302c;
-        }
         #definition {
             margin-top: 1em;
             padding: 1em;
@@ -75,6 +68,18 @@
         }
         .word-entry {
             margin-bottom: 0.75em;
+            position: relative;
+        }
+        .delete-icon {
+            float: right;
+            color: #999;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: color 0.2s;
+        }
+        .delete-icon:hover {
+            color: #d9534f;
         }
     </style>
 </head>
@@ -163,8 +168,10 @@
             sortedList.forEach(entry => {
                 const div = document.createElement("div");
                 div.className = "word-entry";
-                div.innerHTML = `<strong>${entry.word}</strong>: <em>${entry.definition}</em>
-                    <button class="delete-btn" onclick="deleteWord('${entry.word}')">Delete</button>`;
+                div.innerHTML = `
+                    <strong>${entry.word}</strong>: <em>${entry.definition}</em>
+                    <span class="delete-icon" onclick="deleteWord('${entry.word}')">&times;</span>
+                `;
                 wordListDiv.appendChild(div);
             });
         }

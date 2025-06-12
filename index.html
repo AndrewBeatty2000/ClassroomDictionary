@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Classroom Dictionary</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2em;
+            background: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+        }
+        #dictionary {
+            max-width: 600px;
+            margin: auto;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 0.5em;
+            font-size: 1em;
+        }
+        button {
+            padding: 0.5em 1em;
+            font-size: 1em;
+            margin-left: 0.5em;
+        }
+        #definition {
+            margin-top: 1em;
+            padding: 1em;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+        #word-wall {
+            margin-top: 2em;
+            padding: 1em;
+            background: #e0f7fa;
+            border: 1px solid #b2ebf2;
+        }
+        .word-entry {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div id="dictionary">
+        <h1>Classroom Dictionary</h1>
+        <input type="text" id="wordInput" placeholder="Enter a word">
+        <button onclick="defineWord()">Define</button>
+        <div id="definition"></div>
+        <div id="word-wall">
+            <h3>Word Wall</h3>
+            <div id="wordList"></div>
+        </div>
+    </div>
+
+    <script>
+        const wordList = [];
+
+        function defineWord() {
+            const word = document.getElementById("wordInput").value.trim();
+            if (!word) return;
+
+            fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+                .then(response => response.json())
+                .then(data => {
+                    const entry = data[0];
+                    const meaning = entry.meanings[0].definitions[0].definition;
+                    const audio = entry.phonetics.find(p => p.audio)?.audio;
+
+                    document.getElementById("definition").innerHTML = `
+                        <strong>${entry.word}</strong><br>
+                        <em>${meaning}</em><br>
+                        ${audio ? `<button onclick="new Audio('${audio}').play()">🔊 Pronounce</button>` : ''}
+                    `;
+
+                    if (!wordList.includes(entry.word)) {
+                        wordList.push(entry.word);
+                        const wordDiv = document.createElement("div");
+                        wordDiv.className = "word-entry";
+                        wordDiv.textContent = entry.word;
+                        document.getElementById("wordList").appendChild(wordDiv);
+                    }
+                })
+                .catch(() => {
+                    document.getElementById("definition").innerHTML = "Definition not found.";
+                });
+        }
+    </script>
+</body>
+</html>

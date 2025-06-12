@@ -1,189 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Classroom Dictionary</title>
-    <style>
-        body {
-            font-family: 'Calibri', sans-serif;
-            margin: 2em;
-            background: #f4f6f8;
-            color: #333;
-        }
-        h1 {
-            text-align: center;
-            font-weight: normal;
-        }
-        #dictionary {
-            max-width: 700px;
-            margin: auto;
-        }
-        input[type="text"], input[type="password"] {
-            width: 60%;
-            padding: 0.5em;
-            font-size: 1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 0.5em 1em;
-            font-size: 1em;
-            margin-left: 0.5em;
-            border: none;
-            background-color: #0078d4;
-            color: white;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #005a9e;
-        }
-        #definition {
-            margin-top: 1em;
-            padding: 1em;
-            background: #ffffff;
-            border-left: 4px solid #0078d4;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        #tabs {
-            display: flex;
-            margin-top: 2em;
-            border-bottom: 1px solid #ccc;
-        }
-        .tab {
-            padding: 0.5em 1em;
-            cursor: pointer;
-            margin-right: 0.5em;
-            border-bottom: 3px solid transparent;
-        }
-        .tab.active {
-            border-bottom: 3px solid #0078d4;
-            font-weight: bold;
-        }
-        #word-wall {
-            padding: 1em;
-            background: #ffffff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-top: 1em;
-        }
-        .word-entry {
-            margin-bottom: 0.75em;
-            position: relative;
-        }
-        .delete-icon {
-            float: right;
-            color: #999;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: color 0.2s;
-        }
-        .delete-icon:hover {
-            color: #d9534f;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Classroom Dictionary (Cloud Synced)</title>
+  <style>
+    body {
+      font-family: 'Calibri', sans-serif;
+      margin: 2em;
+      background: #f4f6f8;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      font-weight: normal;
+    }
+    #dictionary {
+      max-width: 700px;
+      margin: auto;
+    }
+    input[type="text"], input[type="password"] {
+      width: 60%;
+      padding: 0.5em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 0.5em 1em;
+      font-size: 1em;
+      margin-left: 0.5em;
+      border: none;
+      background-color: #0078d4;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005a9e;
+    }
+    #definition {
+      margin-top: 1em;
+      padding: 1em;
+      background: #ffffff;
+      border-left: 4px solid #0078d4;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    #tabs {
+      display: flex;
+      margin-top: 2em;
+      border-bottom: 1px solid #ccc;
+    }
+    .tab {
+      padding: 0.5em 1em;
+      cursor: pointer;
+      margin-right: 0.5em;
+      border-bottom: 3px solid transparent;
+    }
+    .tab.active {
+      border-bottom: 3px solid #0078d4;
+      font-weight: bold;
+    }
+    #word-wall {
+      padding: 1em;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-top: 1em;
+    }
+    .word-entry {
+      margin-bottom: 0.75em;
+      position: relative;
+    }
+    .delete-icon {
+      float: right;
+      color: #999;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: color 0.2s;
+    }
+    .delete-icon:hover {
+      color: #d9534f;
+    }
+  </style>
 </head>
 <body>
-    <div id="dictionary">
-        <h1>Classroom Dictionary</h1>
-        <div id="auth-section">
-            <input type="password" id="passwordInput" placeholder="Enter password to edit">
-            <button onclick="unlock()">Unlock</button>
-        </div>
-        <div id="editor" style="display:none;">
-            <input type="text" id="wordInput" placeholder="Enter a word">
-            <button onclick="defineWord()">Define</button>
-        </div>
-        <div id="definition"></div>
-
-        <div id="tabs">
-            <div class="tab active" onclick="switchTab('date')">Date Added</div>
-            <div class="tab" onclick="switchTab('alpha')">Alphabetical</div>
-        </div>
-        <div id="word-wall">
-            <h3>Word Wall</h3>
-            <div id="wordList"></div>
-        </div>
+  <div id="dictionary">
+    <h1>Classroom Dictionary</h1>
+    <div id="auth-section">
+      <input type="password" id="passwordInput" placeholder="Enter password to edit" />
+      <button onclick="unlock()">Unlock</button>
     </div>
+    <div id="editor" style="display:none;">
+      <input type="text" id="wordInput" placeholder="Enter a word" />
+      <button onclick="defineWord()">Define</button>
+    </div>
+    <div id="definition"></div>
 
-    <script>
-        let wordList = JSON.parse(localStorage.getItem("wordList") || "[]");
-        let currentTab = "date";
-        const PASSWORD = "teacher123";
+    <div id="tabs">
+      <div class="tab active" onclick="switchTab('date')">Date Added</div>
+      <div class="tab" onclick="switchTab('alpha')">Alphabetical</div>
+    </div>
+    <div id="word-wall">
+      <h3>Word Wall</h3>
+      <div id="wordList"></div>
+    </div>
+  </div>
 
-        function unlock() {
-            const input = document.getElementById("passwordInput").value;
-            if (input === PASSWORD) {
-                document.getElementById("editor").style.display = "block";
-                document.getElementById("auth-section").style.display = "none";
-            } else {
-                alert("Incorrect password.");
-            }
-        }
+ // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+// Your web app's Firebase configuration
+const firebaseConfig = {  apiKey: "AIzaSyCjpAGku_skDUlKnQUBCzI7vfB8MsnROXE",  authDomain: "classroomdictionary.firebaseapp.com",  projectId: "classroomdictionary",  storageBucket: "classroomdictionary.firebasestorage.app",  messagingSenderId: "517415370071",  appId: "1:517415370071:web:9e07730f6c435e3dded212"};
+// Initialize Firebaseconst app = initializeApp(firebaseConfig);
 
-        function defineWord() {
-            const word = document.getElementById("wordInput").value.trim();
-            if (!word) return;
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const collection = db.collection("dictionary");
 
-            fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
-                .then(response => response.json())
-                .then(data => {
-                    const entry = data[0];
-                    const meaning = entry.meanings[0].definitions[0].definition;
-                    const audio = entry.phonetics.find(p => p.audio)?.audio;
+    const PASSWORD = "teacher123";
+    let currentTab = "date";
+    let wordList = [];
 
-                    document.getElementById("definition").innerHTML = `
-                        <strong>${entry.word}</strong><br>
-                        <em>${meaning}</em><br>
-                        ${audio ? `<button onclick="new Audio('${audio}').play()">🔊 Pronounce</button>` : ''}
-                    `;
+    function unlock() {
+      const input = document.getElementById("passwordInput").value;
+      if (input === PASSWORD) {
+        document.getElementById("editor").style.display = "block";
+        document.getElementById("auth-section").style.display = "none";
+      } else {
+        alert("Incorrect password.");
+      }
+    }
 
-                    if (!wordList.some(w => w.word === entry.word)) {
-                        wordList.push({ word: entry.word, definition: meaning, date: new Date().toISOString() });
-                        localStorage.setItem("wordList", JSON.stringify(wordList));
-                        renderWordWall();
-                    }
-                })
-                .catch(() => {
-                    document.getElementById("definition").innerHTML = "Definition not found.";
-                });
-        }
+    function defineWord() {
+      const word = document.getElementById("wordInput").value.trim();
+      if (!word) return;
 
-        function deleteWord(word) {
-            wordList = wordList.filter(entry => entry.word !== word);
-            localStorage.setItem("wordList", JSON.stringify(wordList));
-            renderWordWall();
-        }
+      fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+        .then(response => response.json())
+        .then(data => {
+          const entry = data[0];
+          const meaning = entry.meanings[0].definitions[0].definition;
+          const audio = entry.phonetics.find(p => p.audio)?.audio;
 
-        function renderWordWall() {
-            const sortedList = [...wordList];
-            if (currentTab === "alpha") {
-                sortedList.sort((a, b) => a.word.localeCompare(b.word));
-            } else {
-                sortedList.sort((a, b) => new Date(a.date) - new Date(b.date));
-            }
+          document.getElementById("definition").innerHTML = `
+            <strong>${entry.word}</strong><br>
+            <em>${meaning}</em><br>
+            ${audio ? `<button onclick="new Audio('${audio}').play()">🔊 Pronounce</button>` : ''}
+          `;
 
-            const wordListDiv = document.getElementById("wordList");
-            wordListDiv.innerHTML = "";
-            sortedList.forEach(entry => {
-                const div = document.createElement("div");
-                div.className = "word-entry";
-                div.innerHTML = `
-                    <strong>${entry.word}</strong>: <em>${entry.definition}</em>
-                    <span class="delete-icon" onclick="deleteWord('${entry.word}')">&times;</span>
-                `;
-                wordListDiv.appendChild(div);
-            });
-        }
+          collection.doc(entry.word).set({
+            word: entry.word,
+            definition: meaning,
+            date: new Date().toISOString()
+          });
+        })
+        .catch(() => {
+          document.getElementById("definition").innerHTML = "Definition not found.";
+        });
+    }
 
-        function switchTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-            document.querySelector(`.tab:nth-child(${tab === "date" ? 1 : 2})`).classList.add("active");
-            renderWordWall();
-        }
+    function deleteWord(word) {
+      collection.doc(word).delete();
+    }
 
-        renderWordWall();
-    </script>
+    function renderWordWall() {
+      const sortedList = [...wordList];
+      if (currentTab === "alpha") {
+        sortedList.sort((a, b) => a.word.localeCompare(b.word));
+      } else {
+        sortedList.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      const wordListDiv = document.getElementById("wordList");
+      wordListDiv.innerHTML = "";
+      sortedList.forEach(entry => {
+        const div = document.createElement("div");
+        div.className = "word-entry";
+        div.innerHTML = `
+          <strong>${entry.word}</strong>: <em>${entry.definition}</em>
+          <span class="delete-icon" onclick="deleteWord('${entry.word}')">&times;</span>
+        `;
+        wordListDiv.appendChild(div);
+      });
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelector(`.tab:nth-child(${tab === "date" ? 1 : 2})`).classList.add("active");
+      renderWordWall();
+    }
+
+    collection.onSnapshot(snapshot => {
+      wordList = [];
+      snapshot.forEach(doc => wordList.push(doc.data()));
+      renderWordWall();
+    });
+  </script>
 </body>
 </html>

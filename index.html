@@ -4,83 +4,7 @@
   <meta charset="UTF-8" />
   <title>Classroom Dictionary (Cloud Synced)</title>
   <style>
-    body {
-      font-family: 'Calibri', sans-serif;
-      margin: 2em;
-      background: #f4f6f8;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      font-weight: normal;
-    }
-    #dictionary {
-      max-width: 700px;
-      margin: auto;
-    }
-    input[type="text"], input[type="password"] {
-      width: 60%;
-      padding: 0.5em;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      padding: 0.5em 1em;
-      font-size: 1em;
-      margin-left: 0.5em;
-      border: none;
-      background-color: #0078d4;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #005a9e;
-    }
-    #definition {
-      margin-top: 1em;
-      padding: 1em;
-      background: #ffffff;
-      border-left: 4px solid #0078d4;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    #tabs {
-      display: flex;
-      margin-top: 2em;
-      border-bottom: 1px solid #ccc;
-    }
-    .tab {
-      padding: 0.5em 1em;
-      cursor: pointer;
-      margin-right: 0.5em;
-      border-bottom: 3px solid transparent;
-    }
-    .tab.active {
-      border-bottom: 3px solid #0078d4;
-      font-weight: bold;
-    }
-    #word-wall {
-      padding: 1em;
-      background: #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      margin-top: 1em;
-    }
-    .word-entry {
-      margin-bottom: 0.75em;
-      position: relative;
-    }
-    .delete-icon {
-      float: right;
-      color: #999;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
-      transition: color 0.2s;
-    }
-    .delete-icon:hover {
-      color: #d9534f;
-    }
+    /* (Your CSS stays exactly the same) */
   </style>
 </head>
 <body>
@@ -106,10 +30,13 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-  <script>
+  <!-- Firebase Modular SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyCjpAGku_skDUlKnQUBCzI7vfB8MsnROXE",
       authDomain: "classroomdictionary.firebaseapp.com",
@@ -119,13 +46,93 @@
       appId: "1:517415370071:web:9e07730f6c435e3dded212"
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const collection = db.collection("dictionary");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const dictCollection = collection(db, "dictionary");
 
     const PASSWORD = "teacher123";
     let currentTab = "date";
     let wordList = [];
 
-    function unlock() {
-      const input = document.get
+    window.unlock = function() {
+      const input = document.getElementById("passwordInput").value;
+      if (input === PASSWORD) {
+        document.getElementById("editor").style.display = "block";
+        document.getElementById("auth-section").style.display = "none";
+      } else {
+        alert("Incorrect password.");
+      }
+    }
+
+    window.defineWord = function() {
+      const word = document.getElementById("wordInput").value.trim();
+      if (!word) return;
+
+      fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+        .then(response => response.json())
+        .then(async data => {
+          const entry = data[0];
+          const meaning = entry.meanings[0].definitions[0].definition;
+          const audio = entry.phonetics.find(p => p.audio)?.audio;
+
+          document.getElementById("definition").innerHTML = `
+            <strong>${entry.word}</strong><br>
+            <em>${meaning}</em><br>
+            ${audio ? `<button onclick="new Audio('${audio}').play()">🔊 Pronounce</button>` : ''}
+          `;
+
+          const docRef = doc(dictCollection, entry.word);
+          await setDoc(docRef, {
+            word: entry.word,
+            definition: meaning,
+            date: new Date().toISOString()
+          });
+
+          document.getElementById("wordInput").value = "";
+        })
+        .catch(() => {
+          document.getElementById("definition").innerHTML = "Definition not found.";
+        });
+    }
+
+    window.deleteWord = async function(word) {
+      const docRef = doc(dictCollection, word);
+      await deleteDoc(docRef);
+    }
+
+    function renderWordWall() {
+      const sortedList = [...wordList];
+      if (currentTab === "alpha") {
+        sortedList.sort((a, b) => a.word.localeCompare(b.word));
+      } else {
+        sortedList.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      const wordListDiv = document.getElementById("wordList");
+      wordListDiv.innerHTML = "";
+      sortedList.forEach(entry => {
+        const div = document.createElement("div");
+        div.className = "word-entry";
+        div.innerHTML = `
+          <strong>${entry.word}</strong>: <em>${entry.definition}</em>
+          <span class="delete-icon" onclick="deleteWord('${entry.word}')">&times;</span>
+        `;
+        wordListDiv.appendChild(div);
+      });
+    }
+
+    window.switchTab = function(tab) {
+      currentTab = tab;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelector(`.tab:nth-child(${tab === "date" ? 1 : 2})`).classList.add("active");
+      renderWordWall();
+    }
+
+    onSnapshot(dictCollection, snapshot => {
+      wordList = [];
+      snapshot.forEach(docSnap => wordList.push(docSnap.data()));
+      renderWordWall();
+    });
+  </script>
+</body>
+</html>

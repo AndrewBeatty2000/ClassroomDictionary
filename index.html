@@ -10,77 +10,40 @@
       background: #f4f6f8;
       color: #333;
     }
-    h1 {
-      text-align: center;
-      font-weight: normal;
-    }
-    #dictionary {
-      max-width: 700px;
-      margin: auto;
-    }
+    h1 { text-align: center; font-weight: normal; }
+    #dictionary { max-width: 700px; margin: auto; }
     input[type="text"], input[type="password"] {
-      width: 60%;
-      padding: 0.5em;
-      font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      width: 60%; padding: 0.5em; font-size: 1em;
+      border: 1px solid #ccc; border-radius: 4px;
     }
     button {
-      padding: 0.5em 1em;
-      font-size: 1em;
-      margin-left: 0.5em;
-      border: none;
-      background-color: #0078d4;
-      color: white;
-      border-radius: 4px;
-      cursor: pointer;
+      padding: 0.5em 1em; font-size: 1em; margin-left: 0.5em;
+      border: none; background-color: #0078d4; color: white;
+      border-radius: 4px; cursor: pointer;
     }
-    button:hover {
-      background-color: #005a9e;
-    }
+    button:hover { background-color: #005a9e; }
     #definition {
-      margin-top: 1em;
-      padding: 1em;
-      background: #ffffff;
+      margin-top: 1em; padding: 1em; background: #ffffff;
       border-left: 4px solid #0078d4;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    #tabs {
-      display: flex;
-      margin-top: 2em;
-      border-bottom: 1px solid #ccc;
-    }
+    #tabs { display: flex; margin-top: 2em; border-bottom: 1px solid #ccc; }
     .tab {
-      padding: 0.5em 1em;
-      cursor: pointer;
-      margin-right: 0.5em;
-      border-bottom: 3px solid transparent;
+      padding: 0.5em 1em; cursor: pointer;
+      margin-right: 0.5em; border-bottom: 3px solid transparent;
     }
-    .tab.active {
-      border-bottom: 3px solid #0078d4;
-      font-weight: bold;
-    }
+    .tab.active { border-bottom: 3px solid #0078d4; font-weight: bold; }
     #word-wall {
-      padding: 1em;
-      background: #ffffff;
+      padding: 1em; background: #ffffff;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       margin-top: 1em;
     }
-    .word-entry {
-      margin-bottom: 0.75em;
-      position: relative;
-    }
+    .word-entry { margin-bottom: 0.75em; position: relative; }
     .delete-icon {
-      float: right;
-      color: #999;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
-      transition: color 0.2s;
+      float: right; color: #999; font-weight: bold;
+      cursor: pointer; margin-left: 10px; transition: color 0.2s;
     }
-    .delete-icon:hover {
-      color: #d9534f;
-    }
+    .delete-icon:hover { color: #d9534f; }
   </style>
 </head>
 <body>
@@ -107,12 +70,10 @@
   </div>
 
   <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // Firebase config
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCjpAGku_skDUlKnQUBCzI7vfB8MsnROXE",
       authDomain: "classroomdictionary.firebaseapp.com",
@@ -123,83 +84,101 @@
     };
 
     // Init Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const collection = db.collection("dictionary");
 
-    // Sign in anonymously so Firestore rules allow writes
-    signInAnonymously(auth).catch((error) => {
-      console.error("Auth error:", error);
-    });
+    // Anon login so Firestore rules work
+    auth.signInAnonymously().catch(err => console.error("Auth error:", err));
 
-    const dictionaryRef = collection(db, "dictionary");
     const PASSWORD = "teacher123";
     let currentTab = "date";
     let wordList = [];
 
-    async function loadWords() {
-      const q = query(dictionaryRef, orderBy("timestamp", "desc"));
-      const snapshot = await getDocs(q);
-      wordList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      renderWords();
-    }
-
-    async function defineWord() {
-      const word = document.getElementById("wordInput").value.trim();
-      if (!word) return;
-      await addDoc(dictionaryRef, {
-        word,
-        timestamp: Date.now()
-      });
-      document.getElementById("wordInput").value = "";
-      loadWords();
-    }
-
-    async function deleteWord(id) {
-      await deleteDoc(doc(db, "dictionary", id));
-      loadWords();
-    }
-
-    function renderWords() {
-      const list = document.getElementById("wordList");
-      list.innerHTML = "";
-
-      let sorted = [...wordList];
-      if (currentTab === "alpha") {
-        sorted.sort((a, b) => a.word.localeCompare(b.word));
-      }
-
-      sorted.forEach(entry => {
-        const div = document.createElement("div");
-        div.className = "word-entry";
-        div.innerHTML = `
-          ${entry.word}
-          <span class="delete-icon" onclick="deleteWord('${entry.id}')">&times;</span>
-        `;
-        list.appendChild(div);
-      });
-    }
-
-    window.switchTab = function(tab) {
-      currentTab = tab;
-      document.querySelectorAll(".tab").forEach(el => el.classList.remove("active"));
-      document.querySelector(`.tab[onclick="switchTab('${tab}')"]`).classList.add("active");
-      renderWords();
-    }
-
-    window.unlock = function() {
+    function unlock() {
       const input = document.getElementById("passwordInput").value;
       if (input === PASSWORD) {
         document.getElementById("editor").style.display = "block";
+        document.getElementById("auth-section").style.display = "none";
       } else {
         alert("Incorrect password.");
       }
     }
 
-    window.defineWord = defineWord;
-    window.deleteWord = deleteWord;
+    function defineWord() {
+      const word = document.getElementById("wordInput").value.trim();
+      if (!word) return;
 
-    loadWords();
+      fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data || data.title === "No Definitions Found") {
+            document.getElementById("definition").innerHTML = "Definition not found.";
+            return;
+          }
+
+          const entry = data[0];
+          const meaning = entry.meanings[0].definitions[0].definition;
+          const audio = entry.phonetics.find(p => p.audio)?.audio;
+
+          // Show definition immediately
+          document.getElementById("definition").innerHTML = `
+            <strong>${entry.word}</strong><br>
+            <em>${meaning}</em><br>
+            ${audio ? `<button onclick="new Audio('${audio}').play()">🔊 Pronounce</button>` : ''}
+          `;
+
+          // Save to Firestore
+          collection.doc(entry.word.toLowerCase()).set({
+            word: entry.word,
+            definition: meaning,
+            date: new Date().toISOString()
+          });
+        })
+        .catch(() => {
+          document.getElementById("definition").innerHTML = "Definition not found.";
+        });
+    }
+
+    function deleteWord(word) {
+      collection.doc(word.toLowerCase()).delete();
+    }
+
+    function renderWordWall() {
+      const sortedList = [...wordList];
+      if (currentTab === "alpha") {
+        sortedList.sort((a, b) => a.word.localeCompare(b.word));
+      } else {
+        sortedList.sort((a, b) => new Date(a.date) - new Date(b.date));
+      }
+
+      const wordListDiv = document.getElementById("wordList");
+      wordListDiv.innerHTML = "";
+      sortedList.forEach(entry => {
+        const div = document.createElement("div");
+        div.className = "word-entry";
+        div.innerHTML = `
+          <strong>${entry.word}</strong>: <em>${entry.definition}</em>
+          <span class="delete-icon" onclick="deleteWord('${entry.word}')">&times;</span>
+        `;
+        wordListDiv.appendChild(div);
+      });
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      document.querySelector(`.tab:nth-child(${tab === "date" ? 1 : 2})`).classList.add("active");
+      renderWordWall();
+    }
+
+    // Live sync with Firestore
+    collection.onSnapshot(snapshot => {
+      wordList = [];
+      snapshot.forEach(doc => wordList.push(doc.data()));
+      renderWordWall();
+    });
   </script>
 </body>
 </html>

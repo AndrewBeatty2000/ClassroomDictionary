@@ -64,7 +64,7 @@
 
   <div id="editor" style="display:none;">
     <input type="text" id="wordInput" placeholder="Enter a word" />
-    <button onclick="defineWord()">Define</button>
+    <button id="defineButton">Define</button>
     <div id="definition"></div>
   </div>
 
@@ -109,6 +109,9 @@
         document.getElementById("passwordInput").value = "";
       }
     });
+
+    // ✅ Bind define button properly
+    document.getElementById("defineButton").addEventListener("click", defineWord);
 
     async function defineWord() {
       const word = document.getElementById("wordInput").value.trim().toLowerCase();
@@ -163,7 +166,7 @@
       });
     }
 
-    window.defineWord = defineWord;
+    // ✅ Expose deleteWord globally
     window.deleteWord = async (word) => {
       if (teacherMode && confirm(`Delete "${word}"?`)) {
         await deleteDoc(doc(collection(db, "dictionary"), word));
